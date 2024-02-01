@@ -8,6 +8,8 @@ import path from "path";
 import { fileURLToPath } from "url";
 import { connection } from "./config/db.js";
 import authRoutes from "./routes/auth-routes.js";
+import userRoutes from "./routes/user-routes.js";
+import multer from "multer";
 
 // CONFIGURATIONS
 const __filename = fileURLToPath(import.meta.url);
@@ -23,12 +25,23 @@ app.use(cors());
 app.use("/assets", express.static(path.join(__dirname, "public/assets")));
 
 // FILE STORAGE
-
-app.get("/", (req, res) => {
-  res.send("welcome");
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, "public/assets");
+  },
+  filename: function (req, file, cb) {
+    cb(null, file.originalname);
+  },
 });
 
-app.use("/auth", authRoutes);
+export const upload = multer({ storage: storage });
+
+app.get("/", (req, res) => {
+  res.send("welcome to socialpedia");
+});
+
+app.use("/auth", upload.single("picture"), authRoutes);
+app.use("/user", userRoutes);
 
 app.listen(process.env.PORT, async () => {
   try {
