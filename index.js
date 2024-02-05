@@ -10,6 +10,7 @@ import { connection } from "./config/db.js";
 import authRoutes from "./routes/auth-routes.js";
 import userRoutes from "./routes/user-routes.js";
 import multer from "multer";
+import cloudinary from "cloudinary";
 
 // CONFIGURATIONS
 const __filename = fileURLToPath(import.meta.url);
@@ -22,25 +23,19 @@ app.use(morgan("common"));
 app.use(bodyParser.json({ limit: "30mb", extended: true }));
 app.use(bodyParser.urlencoded({ limit: "30mb", extended: true }));
 app.use(cors());
-app.use("/assets", express.static(path.join(__dirname, "public/assets")));
+app.use("/assets", express.static(path.join(__dirname, "public")));
 
 // FILE STORAGE
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, "public/assets");
-  },
-  filename: function (req, file, cb) {
-    cb(null, file.originalname);
-  },
+const uploader = multer({
+  storage: multer.diskStorage({}),
+  limits: { fileSize: 500000 },
 });
-
-export const upload = multer({ storage: storage });
 
 app.get("/", (req, res) => {
   res.send("welcome to socialpedia");
 });
 
-app.use("/auth", upload.single("picture"), authRoutes);
+app.use("/auth", uploader.single("file"), authRoutes);
 app.use("/user", userRoutes);
 
 app.listen(process.env.PORT, async () => {

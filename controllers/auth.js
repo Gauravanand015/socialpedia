@@ -1,6 +1,7 @@
 import { User } from "../models/user-model.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import { uploadImage } from "../utils/cloudinary-upload.js";
 
 export const register = async (req, res) => {
   const {
@@ -8,11 +9,11 @@ export const register = async (req, res) => {
     lastName,
     email,
     password,
-    picturePath,
     friends,
     occupation,
     location,
   } = req.body;
+  const picturePath = req.file.path;
   try {
     const salt = bcrypt.genSaltSync(10);
     const hashedPassword = bcrypt.hashSync(password, salt);
@@ -21,7 +22,7 @@ export const register = async (req, res) => {
       lastName,
       email,
       password: hashedPassword,
-      picturePath,
+      picturePath: await uploadImage(picturePath),
       friends,
       occupation,
       location,
